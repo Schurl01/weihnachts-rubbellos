@@ -4,325 +4,309 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Weihnachts-Rubbellos</title>
-<meta name="description" content="Gib dein Codewort ein, rubble dein Los frei und gewinne einen Flug-Gutschein.">
-<meta name="theme-color" content="#0b1630">
+<meta name="description" content="Gib dein Codewort ein, rubble 9 Felder frei und finde 4 Flieger: Gewinne einen Flug-Gutschein.">
+<meta name="theme-color" content="#060b1d">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --night: #0b1630;
-    --night-2: #16295a;
-    --gold: #e8c46a;
-    --gold-2: #f8e7a8;
-    --gold-3: #b8872e;
-    --snow: #f4f7ff;
-    --muted: #a9b6d6;
-    --red: #d8434d;
-    --card: rgba(16, 30, 66, 0.72);
-    --line: rgba(232, 196, 106, 0.35);
-    --paper: #fdfaf1;
-    --ink: #1c2540;
+    --bg: #060b1d;
+    --text: #f3f6ff;
+    --muted: #9aa6c7;
+    --faint: rgba(255, 255, 255, 0.08);
+    --glass: rgba(18, 26, 56, 0.55);
+    --border: rgba(255, 255, 255, 0.12);
+    --gold: #f5c451;
+    --gold-2: #ffe7a3;
+    --gold-3: #c48a1c;
+    --green: #34d399;
+    --red: #fb7185;
+    --radius: 22px;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
+  html, body { margin: 0; }
+  html.lenis, html.lenis body { height: auto; }
   body {
-    background: radial-gradient(ellipse at 50% -10%, #24407e 0%, var(--night-2) 35%, var(--night) 75%);
-    background-color: var(--night);
-    color: var(--snow);
-    font: 16px/1.5 'Nunito', system-ui, sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
+    background: var(--bg); color: var(--text);
+    font: 16px/1.55 'Sora', system-ui, sans-serif;
+    min-height: 100vh; overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Himmel */
-  #sky, #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-  #confetti { z-index: 20; }
-  .moon {
-    position: fixed; top: 7vh; right: 9vw; width: 70px; height: 70px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #fffbe8, #f3e3a8 60%, #d9c27a);
-    box-shadow: 0 0 40px 12px rgba(248, 231, 168, 0.25);
+  /* ---------- Hintergrund: Aurora, Sterne, Schnee ---------- */
+  .aurora { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .aurora i {
+    position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
+    filter: blur(80px); opacity: .45; will-change: transform;
   }
-  .plane {
-    position: fixed; bottom: 30vh; left: 0; width: 120px; pointer-events: none; z-index: 1;
-    animation: fly 28s linear infinite; animation-delay: -6s;
-  }
+  .aurora i:nth-child(1) { background: radial-gradient(circle, #1e3a8a, transparent 65%); top: -25vmax; left: -15vmax; }
+  .aurora i:nth-child(2) { background: radial-gradient(circle, #0f766e, transparent 65%); top: -10vmax; right: -25vmax; opacity: .35; }
+  .aurora i:nth-child(3) { background: radial-gradient(circle, #6d28d9, transparent 65%); bottom: -30vmax; left: 10vmax; opacity: .3; }
+  #sky, #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #sky { z-index: 1; }
+  #fx { z-index: 30; }
+  .plane { position: fixed; top: 12vh; left: 0; width: 70px; z-index: 1; pointer-events: none; opacity: .9; }
   .plane svg { width: 100%; display: block; }
-  .plane .trail {
-    position: absolute; right: 92%; top: 46%; height: 3px; width: 46vw;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45));
-    border-radius: 2px;
-  }
-  .plane .blink { animation: blink 1.2s steps(1) infinite; }
-  @keyframes fly {
-    0% { transform: translate(-40vw, 6vh) rotate(-3deg); }
-    100% { transform: translate(130vw, -4vh) rotate(-3deg); }
-  }
-  @keyframes blink { 50% { opacity: 0; } }
-  .hills { position: fixed; left: 0; right: 0; bottom: 0; height: 22vh; min-height: 120px; pointer-events: none; }
-  .hills svg { width: 100%; height: 100%; display: block; }
+  .plane .trail { position: absolute; right: 85%; top: 48%; height: 2px; width: 40vw; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35)); }
 
-  /* Inhalt */
-  main {
-    position: relative; z-index: 2;
-    max-width: 460px; margin: 0 auto;
-    padding: max(6vh, 32px) 16px 26vh;
-  }
-  .eyebrow {
-    text-align: center; letter-spacing: .22em; text-transform: uppercase;
-    font-size: 12px; font-weight: 800; color: var(--gold);
+  /* ---------- Layout ---------- */
+  main { position: relative; z-index: 2; max-width: 480px; margin: 0 auto; padding: max(7vh, 36px) 16px 64px; }
+  .pill {
+    display: table; margin: 0 auto; padding: 6px 14px; border-radius: 999px;
+    background: var(--faint); border: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--gold-2);
   }
   h1 {
-    font-family: 'Playfair Display', Georgia, serif; font-style: italic;
-    font-size: clamp(34px, 9vw, 48px); line-height: 1.08; text-align: center;
-    margin: 8px 0 12px;
-    background: linear-gradient(180deg, var(--gold-2), var(--gold) 55%, var(--gold-3));
+    margin: 18px 0 12px; text-align: center;
+    font-size: clamp(38px, 10.5vw, 58px); line-height: 1.02; font-weight: 800; letter-spacing: -.035em;
+  }
+  .shiny {
+    background: linear-gradient(110deg, var(--gold-3) 0%, var(--gold) 30%, #fff8dc 45%, var(--gold) 60%, var(--gold-3) 100%);
+    background-size: 250% 100%;
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    text-shadow: 0 2px 30px rgba(232, 196, 106, 0.18);
+    animation: shine 5s linear infinite;
   }
-  .lead { text-align: center; color: var(--muted); margin: 0 auto 26px; max-width: 36ch; }
+  @keyframes shine { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+  .lead { text-align: center; color: var(--muted); margin: 0 auto 28px; max-width: 34ch; }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 22px;
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  .glass {
+    position: relative; background: var(--glass); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+    backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255,255,255,.08);
+    overflow: hidden;
   }
-  label { display: block; font-weight: 800; margin-bottom: 8px; }
+  /* Spotlight, folgt der Maus */
+  .glass::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(245, 196, 81, .12), transparent 60%);
+  }
+  .glass:hover::before { opacity: 1; }
+
+  /* ---------- Formular ---------- */
+  label { display: block; font-weight: 700; margin-bottom: 10px; font-size: 15px; }
   .field { display: flex; gap: 10px; }
   input[type=text] {
-    flex: 1; min-width: 0;
-    background: rgba(5, 12, 30, 0.6); color: var(--snow);
-    border: 1.5px solid rgba(169, 182, 214, 0.35); border-radius: 12px;
-    padding: 13px 14px; font: 700 17px/1.2 'Nunito', sans-serif; letter-spacing: .06em; text-transform: uppercase;
-    outline: none; transition: border-color .2s;
+    flex: 1; min-width: 0; background: rgba(0, 0, 0, .3); color: var(--text);
+    border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px;
+    font: 700 16px/1.2 'Sora', sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    outline: none; transition: border-color .2s, box-shadow .2s;
   }
-  input[type=text]::placeholder { text-transform: none; letter-spacing: 0; font-weight: 400; color: #6f7ea5; }
-  input[type=text]:focus { border-color: var(--gold); }
+  input[type=text]::placeholder { text-transform: none; letter-spacing: 0; font-weight: 400; color: #5f6b8f; }
+  input[type=text]:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(245, 196, 81, .15); }
   .btn {
-    border: 0; border-radius: 12px; padding: 13px 18px; cursor: pointer;
-    font: 800 16px/1.2 'Nunito', sans-serif; color: #2a1d00;
-    background: linear-gradient(180deg, var(--gold-2), var(--gold) 60%, #d3a94c);
-    box-shadow: 0 4px 14px rgba(232, 196, 106, 0.3);
-    transition: transform .1s, filter .2s;
+    position: relative; border: 0; border-radius: 14px; padding: 14px 20px; cursor: pointer;
+    font: 700 15px/1.2 'Sora', sans-serif; color: #241800;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold));
+    box-shadow: 0 8px 24px rgba(245, 196, 81, .25), inset 0 1px 0 rgba(255,255,255,.6);
+    transition: filter .2s, transform .1s; white-space: nowrap;
   }
-  .btn:hover { filter: brightness(1.06); }
-  .btn:active { transform: translateY(1px); }
+  .btn:hover { filter: brightness(1.07); }
+  .btn:active { transform: scale(.98); }
   .btn:disabled { opacity: .6; cursor: wait; }
-  .msg { min-height: 1.5em; margin: 10px 0 0; font-size: 14px; color: var(--muted); }
-  .msg.err { color: #ff9aa0; }
-  .shake { animation: shake .4s; }
-  @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
-  .hint { margin: 16px 0 0; font-size: 13px; color: var(--muted); text-align: center; }
+  .btn.ghost { background: var(--faint); color: var(--text); box-shadow: none; border: 1px solid var(--border); padding: 10px 14px; font-size: 13px; }
+  .msg { min-height: 1.5em; margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+  .msg.err { color: var(--red); }
+  .hint { margin: 14px 0 0; font-size: 12.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .rules div { background: var(--faint); border-radius: 14px; padding: 12px 8px; text-align: center; font-size: 12px; color: var(--muted); }
+  .rules b { display: block; font-size: 20px; color: var(--text); margin-bottom: 2px; }
 
-  /* Bordkarte mit Rubbelfeld */
-  .ticket {
-    position: relative; background: var(--paper); color: var(--ink);
-    border-radius: 18px; overflow: hidden;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-    animation: pop .5s cubic-bezier(.2, 1.4, .4, 1);
+  /* ---------- Los ---------- */
+  .ticket { padding: 18px; }
+  .t-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .brand { font-weight: 800; letter-spacing: .04em; display: flex; align-items: center; gap: 8px; }
+  .brand .dot { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, var(--gold-2), var(--gold-3)); color: #241800; font-size: 15px; }
+  .tag { font-size: 12px; color: var(--muted); text-align: right; }
+  .tag b { display: block; color: var(--text); letter-spacing: .05em; font-size: 13px; }
+  .rule {
+    margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px;
+    background: linear-gradient(90deg, rgba(245,196,81,.14), rgba(245,196,81,.04)); border: 1px solid rgba(245,196,81,.25);
   }
-  @keyframes pop { from { transform: translateY(16px) scale(.96); opacity: 0; } }
-  .t-head {
-    display: flex; justify-content: space-between; align-items: center;
-    background: linear-gradient(90deg, #a8242d, var(--red));
-    color: #fff; padding: 12px 18px; font-weight: 800; letter-spacing: .12em; font-size: 13px;
+  .rule b { color: var(--gold-2); }
+  .board { position: relative; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .cell {
+    aspect-ratio: 1; border-radius: 16px; display: grid; place-items: center;
+    background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+    border: 1px solid var(--border); position: relative;
   }
-  .t-head b { font-size: 15px; letter-spacing: .08em; }
-  .t-head b, .t-head span { white-space: nowrap; }
-  @media (max-width: 380px) { .t-head { font-size: 11px; padding: 12px 14px; } .t-head b { font-size: 13px; } }
-  .t-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 16px 18px 6px; gap: 8px; }
-  .t-grid .k { font-size: 11px; letter-spacing: .14em; color: #7a809a; font-weight: 800; }
-  .t-grid .v { font-size: 26px; font-weight: 800; line-height: 1.1; }
-  .t-grid .to { text-align: right; }
-  .t-grid .mid { color: var(--red); font-size: 22px; }
-  .t-meta { display: flex; justify-content: space-between; padding: 6px 18px 14px; font-size: 13px; }
-  .t-meta .k { display: block; font-size: 10px; letter-spacing: .14em; color: #7a809a; font-weight: 800; }
-  .t-meta b { font-weight: 800; }
-  .perf {
-    position: relative; height: 0; border-top: 2px dashed #d7cfb5; margin: 0 14px;
-  }
-  .perf::before, .perf::after {
-    content: ''; position: absolute; top: -13px; width: 24px; height: 24px; border-radius: 50%;
-    background: var(--night);
-  }
-  .perf::before { left: -26px; } .perf::after { right: -26px; }
+  .cell svg { width: 54%; height: 54%; filter: drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
+  .cell.match { border-color: var(--gold); background: radial-gradient(circle, rgba(245,196,81,.28), rgba(245,196,81,.05)); box-shadow: 0 0 0 2px rgba(245,196,81,.35), 0 0 30px rgba(245,196,81,.35); }
+  .cell.near { border-color: rgba(147,197,253,.5); }
+  #foil { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #foil.done { pointer-events: none; }
+  .t-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .bar { flex: 1; height: 6px; border-radius: 6px; background: var(--faint); overflow: hidden; margin-right: 6px; }
+  .bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold-3), var(--gold-2)); border-radius: 6px; transition: width .35s; }
 
-  .scratch-wrap { padding: 16px 16px 10px; }
-  .scratch {
-    position: relative; height: 210px; border-radius: 14px; overflow: hidden;
-    background: linear-gradient(160deg, #fff8e6, #f6ebcf);
-    border: 1px solid #eadfbf;
-  }
-  .prize {
-    position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center; padding: 14px;
-  }
-  .prize .p-icon { font-size: 40px; line-height: 1; }
-  .prize .p-title { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 30px; margin: 6px 0 2px; }
-  .prize.win .p-title { color: #a8242d; }
-  .prize .p-sub { font-size: 14px; color: #555c75; max-width: 30ch; }
+  /* ---------- Ergebnis ---------- */
+  .result { margin-top: 16px; text-align: center; }
+  .result .r-icon { font-size: 44px; line-height: 1; }
+  .result h2 { margin: 10px 0 6px; font-size: 30px; letter-spacing: -.02em; }
+  .result p { margin: 0 auto; color: var(--muted); max-width: 32ch; }
   .voucher {
-    margin-top: 10px; display: flex; align-items: center; gap: 8px;
-    background: #fff; border: 2px dashed var(--gold-3); border-radius: 10px; padding: 6px 6px 6px 12px;
-    max-width: 100%;
+    margin: 18px auto 4px; display: flex; align-items: center; gap: 10px; max-width: 100%;
+    background: rgba(0,0,0,.35); border: 1.5px dashed var(--gold); border-radius: 14px; padding: 8px 8px 8px 16px;
   }
-  .voucher code { font: 800 16px/1.2 ui-monospace, Consolas, monospace; letter-spacing: .05em; word-break: break-all; }
-  .voucher button {
-    border: 0; border-radius: 7px; background: var(--ink); color: #fff; font: 700 12px 'Nunito', sans-serif;
-    padding: 7px 10px; cursor: pointer; white-space: nowrap;
-  }
-  #foil {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    touch-action: none; cursor: grab; transition: opacity .7s;
-  }
-  #foil.gone { opacity: 0; pointer-events: none; }
-  .t-foot {
-    display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    padding: 4px 18px 16px; font-size: 12px; color: #6a708a;
-  }
-  .t-foot b { color: var(--ink); letter-spacing: .05em; }
-  .linkbtn { background: none; border: 0; padding: 0; color: #a8242d; font: 800 12px 'Nunito', sans-serif; cursor: pointer; text-decoration: underline; }
-  .barcode {
-    height: 34px; margin: 0 18px 16px; opacity: .8;
-    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 8px, var(--ink) 8px 11px, transparent 11px 12px);
-  }
-  .note { text-align: center; color: var(--muted); font-size: 14px; margin: 16px 0 0; }
-  .hidden { display: none !important; }
+  .voucher code { flex: 1; text-align: left; font: 700 16px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .05em; word-break: break-all; color: var(--gold-2); }
+  .note { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+  footer { text-align: center; color: #56618a; font-size: 12px; margin-top: 36px; }
 
-  @media (prefers-reduced-motion: reduce) {
-    .plane { display: none; }
-    .ticket { animation: none; }
-  }
-  @media (max-width: 700px) {
-    .moon { top: 14px; right: 14px; width: 40px; height: 40px; }
-    .plane { width: 90px; }
-  }
-  @media (max-width: 380px) {
-    .t-grid .v { font-size: 22px; }
+  .hidden { display: none !important; }
+  .spark { position: fixed; width: 6px; height: 6px; border-radius: 50%; pointer-events: none; z-index: 31; background: var(--gold-2); box-shadow: 0 0 8px var(--gold); }
+
+  @media (max-width: 420px) {
     .field { flex-direction: column; }
+    .plane { top: auto; bottom: 8vh; width: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shiny { animation: none; }
+    .plane { display: none; }
   }
 </style>
 </head>
 <body>
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
   <canvas id="sky" aria-hidden="true"></canvas>
-  <div class="moon" aria-hidden="true"></div>
   <div class="plane" aria-hidden="true">
     <div class="trail"></div>
-    <svg viewBox="0 0 120 40">
-      <path d="M8 20 C8 16 14 15 22 15 L92 15 C104 15 114 18 117 20 C114 22 104 25 92 25 L22 25 C14 25 8 24 8 20 Z" fill="#eef2fb"/>
-      <path d="M50 16 L66 2 L74 2 L66 16 Z" fill="#dfe6f6"/>
-      <path d="M50 24 L64 36 L72 36 L66 24 Z" fill="#c9d3ea"/>
-      <path d="M10 16 L4 5 L12 5 L22 15 Z" fill="#d8434d"/>
-      <circle cx="104" cy="19" r="1.6" fill="#16295a"/>
-      <g fill="#16295a" opacity=".55"><circle cx="34" cy="19" r="1.1"/><circle cx="40" cy="19" r="1.1"/><circle cx="46" cy="19" r="1.1"/><circle cx="72" cy="19" r="1.1"/><circle cx="78" cy="19" r="1.1"/><circle cx="84" cy="19" r="1.1"/><circle cx="90" cy="19" r="1.1"/></g>
-      <circle class="blink" cx="6" cy="6" r="2.2" fill="#ff4b55"/>
-    </svg>
+    <svg viewBox="0 0 120 40"><path d="M8 20c0-4 6-5 14-5h70c12 0 22 3 25 5-3 2-13 5-25 5H22c-8 0-14-1-14-5z" fill="#eef2fb"/><path d="M50 16 66 2h8l-8 14z" fill="#dfe6f6"/><path d="M50 24 64 37h8l-6-13z" fill="#c9d3ea"/><path d="M10 16 4 5h8l10 10z" fill="#fb7185"/><circle cx="6" cy="6" r="2.4" fill="#ff4b55"/></svg>
   </div>
-  <div class="hills" aria-hidden="true">
-    <svg viewBox="0 0 1440 220" preserveAspectRatio="xMidYMax slice">
-      <path d="M0 120 C200 70 380 90 560 120 S900 80 1100 100 S1360 70 1440 90 V220 H0 Z" fill="#c9d6f2" opacity=".35"/>
-      <g fill="#0e1d42">
-        <path d="M150 112 l14 -40 l14 40 z"/><path d="M175 116 l10 -28 l10 28 z"/>
-        <path d="M1180 96 l16 -46 l16 46 z"/><path d="M1210 100 l11 -30 l11 30 z"/><path d="M1160 100 l9 -24 l9 24 z"/>
-      </g>
-      <path d="M0 160 C240 120 420 150 640 160 S1040 120 1240 140 S1400 130 1440 135 V220 H0 Z" fill="#eaf0ff"/>
-      <g fill="#14295a">
-        <path d="M300 152 l18 -54 l18 54 z"/><path d="M330 156 l12 -36 l12 36 z"/>
-        <path d="M880 146 l20 -60 l20 60 z"/><path d="M912 148 l13 -38 l13 38 z"/><path d="M860 150 l10 -28 l10 28 z"/>
-      </g>
-      <g fill="#ffd36b">
-        <circle cx="318" cy="128" r="2.2"/><circle cx="310" cy="140" r="2"/><circle cx="326" cy="144" r="2"/>
-        <circle cx="900" cy="118" r="2.2"/><circle cx="892" cy="132" r="2"/><circle cx="910" cy="138" r="2"/>
-      </g>
-      <path d="M318 96 l2 5 l5 0 l-4 3 l2 5 l-5 -3 l-5 3 l2 -5 l-4 -3 l5 0 z" fill="#ffd36b"/>
-      <path d="M900 84 l2 5 l5 0 l-4 3 l2 5 l-5 -3 l-5 3 l2 -5 l-4 -3 l5 0 z" fill="#ffd36b"/>
-    </svg>
-  </div>
-  <canvas id="confetti" aria-hidden="true"></canvas>
+  <canvas id="fx" aria-hidden="true"></canvas>
 
   <main>
-    <div class="eyebrow">✈ Weihnachts-Verlosung 2026</div>
-    <h1>Dein Flug-Rubbellos</h1>
-    <p class="lead">Gib dein Codewort ein und rubble deine Bordkarte frei. Nur ein einziges Los gewinnt einen Flug-Gutschein.</p>
+    <div class="pill">✈ WEIHNACHTS-VERLOSUNG 2026</div>
+    <h1 id="title"><span class="shiny">Rubbel dich</span><br>zum Flug.</h1>
+    <p class="lead">Gib dein Codewort ein, rubble 9 Felder frei und finde <b>4 Flieger</b>. Nur ein einziges Los gewinnt einen Flug-Gutschein.</p>
 
-    <form id="form" class="card" autocomplete="off">
+    <form id="form" class="glass reveal" autocomplete="off">
       <label for="code">Dein Codewort</label>
       <div class="field">
         <input id="code" type="text" placeholder="z. B. STERN-ABC12" autocapitalize="characters" spellcheck="false" required>
         <button class="btn" id="go" type="submit">Los holen</button>
       </div>
       <p class="msg" id="msg" role="status"></p>
-      <p class="hint">Jedes Codewort kann auf diesem Gerät nur einmal eingelöst werden.</p>
+      <div class="rules">
+        <div><b>9</b>Felder</div>
+        <div><b>4× ✈</b>gewinnt</div>
+        <div><b>1</b>Gewinner</div>
+      </div>
+      <p class="hint">🔒 Jedes Los kann auf diesem Gerät nur einmal gerubbelt werden.</p>
     </form>
 
-    <section id="ticketBox" class="hidden">
-      <div class="ticket">
-        <div class="t-head"><b>✈ XMAS AIR</b><span>BOARDING PASS</span></div>
-        <div class="t-grid">
-          <div><div class="k">VON</div><div class="v">ZRH</div></div>
-          <div class="mid">✈</div>
-          <div class="to"><div class="k">NACH</div><div class="v" id="dest">???</div></div>
+    <section id="game" class="hidden">
+      <div class="glass ticket">
+        <div class="t-top">
+          <div class="brand"><span class="dot">✈</span>XMAS AIR</div>
+          <div class="tag">Dein Los<b id="codeLabel"></b></div>
         </div>
-        <div class="t-meta">
-          <div><span class="k">FLUG</span><b>XM 2412</b></div>
-          <div><span class="k">DATUM</span><b>24 DEZ</b></div>
-          <div><span class="k">GATE</span><b>N0RD</b></div>
-          <div><span class="k">SITZ</span><b id="seat">?</b></div>
+        <p class="rule">Findest du <b>4× ✈ Flieger</b>, gewinnst du einen Flug-Gutschein!</p>
+        <div class="board">
+          <div class="grid" id="grid"></div>
+          <canvas id="foil" aria-label="Rubbelfelder: mit Finger oder Maus freirubbeln"></canvas>
         </div>
-        <div class="perf"></div>
-        <div class="scratch-wrap">
-          <div class="scratch">
-            <div class="prize" id="prize"></div>
-            <canvas id="foil" aria-label="Rubbelfeld: mit Finger oder Maus freirubbeln"></canvas>
-          </div>
+        <div class="t-bottom">
+          <div class="bar"><span id="bar"></span></div>
+          <span id="count">0/9</span>
+          <button class="btn ghost" id="revealAll" type="button">Alle aufdecken</button>
         </div>
-        <div class="t-foot">
-          <span>Codewort: <b id="codeLabel"></b></span>
-          <button class="linkbtn hidden" id="revealAll" type="button">Ganz aufdecken</button>
-        </div>
-        <div class="barcode" aria-hidden="true"></div>
       </div>
-      <p class="note" id="note">Rubble mit dem Finger oder der Maus über das goldene Feld.</p>
+      <div id="result" class="glass result hidden"></div>
+      <p class="note" id="note">Rubble mit dem Finger oder der Maus über die goldenen Felder.</p>
     </section>
+
+    <footer>Frohe Weihnachten ✨</footer>
   </main>
 
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="data.js"></script>
 <script>
 (() => {
   const $ = s => document.querySelector(s);
-  const STORE_KEY = 'xmas-rubbellos-2026';
+  const G = window.gsap || null;
+  const STORE_KEY = 'xmas-rubbellos-2026-v2';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motion = G && !reduceMotion;
 
-  /* ---------- Sternenhimmel und Schnee ---------- */
+  /* ---------- Symbole ---------- */
+  const SYMBOLS = [
+    { name: 'Flieger', color: '#f5c451', svg: '<path fill="currentColor" d="M24 3c1.8 0 3 1.7 3 3.6V18l16 9.5v4.3L27 27v9.3l5.5 3.8V44L24 41.4 15.5 44v-3.9l5.5-3.8V27L5 31.8v-4.3L21 18V6.6C21 4.7 22.2 3 24 3z"/>' },
+    { name: 'Tanne', color: '#34d399', svg: '<path fill="currentColor" d="M24 3l11 14h-6l9 12h-7l10 12H7l10-12h-7l9-12h-6z"/><rect x="21" y="40" width="6" height="6" rx="1" fill="#a16207"/>' },
+    { name: 'Stern', color: '#fde68a', svg: '<path fill="currentColor" d="M24 3l6.2 13.6 14.8 1.6-11 10 3.1 14.6L24 35.3l-13.1 7.5L14 28.2 3 18.2l14.8-1.6z"/>' },
+    { name: 'Geschenk', color: '#fb7185', svg: '<rect x="7" y="19" width="34" height="24" rx="3" fill="currentColor"/><rect x="5" y="13" width="38" height="8" rx="2" fill="currentColor"/><rect x="21" y="13" width="6" height="30" fill="#fde68a"/><path d="M24 13c-3-7-11-8-11-3 0 3 5 3 11 3zm0 0c3-7 11-8 11-3 0 3-5 3-11 3z" fill="none" stroke="#fde68a" stroke-width="3"/>' },
+    { name: 'Schneeflocke', color: '#93c5fd', svg: '<g stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"><path d="M24 4v40M6.7 14l34.6 20M6.7 34l34.6-20"/><path d="M18 7l6 5 6-5M18 41l6-5 6 5M7 21l7-1-2-7M41 27l-7 1 2 7M7 27l7 1-2 7M41 21l-7-1 2-7"/></g>' },
+    { name: 'Glocke', color: '#fbbf24', svg: '<path fill="currentColor" d="M24 5c-7.2 0-12 5.6-12 13v9l-5 7h34l-5-7v-9c0-7.4-4.8-13-12-13z"/><circle cx="24" cy="39" r="4.5" fill="currentColor"/>' }
+  ];
+  const svgFor = i => '<svg viewBox="0 0 48 48" style="color:' + SYMBOLS[i].color + '" aria-hidden="true">' + SYMBOLS[i].svg + '</svg>';
+
+  /* ---------- Weiches Scrollen (Lenis) ---------- */
+  if (window.Lenis && !reduceMotion) {
+    try { new Lenis({ autoRaf: true }); } catch (e) {}
+  }
+
+  /* ---------- Intro (GSAP + SplitText) ---------- */
+  if (motion) {
+    if (window.SplitText) G.registerPlugin(SplitText);
+    const tl = G.timeline({ defaults: { ease: 'power3.out' } });
+    tl.from('.pill', { y: -14, opacity: 0, duration: .6 });
+    if (window.SplitText) {
+      const split = SplitText.create('#title', { type: 'words' });
+      // Goldverlauf auf die einzelnen Wörter legen, sonst verschwindet er beim Zerlegen
+      const shinySpan = document.querySelector('#title .shiny');
+      split.words.forEach(w => { if (shinySpan.contains(w)) w.classList.add('shiny'); });
+      shinySpan.classList.remove('shiny');
+      tl.from(split.words, { y: 40, opacity: 0, rotate: 4, stagger: .08, duration: .8 }, '-=.3');
+    } else {
+      tl.from('#title', { y: 30, opacity: 0, duration: .8 }, '-=.3');
+    }
+    tl.from('.lead', { y: 16, opacity: 0, duration: .6 }, '-=.5')
+      .from('#form', { y: 30, opacity: 0, scale: .97, duration: .8 }, '-=.4')
+      .from('.rules div', { y: 12, opacity: 0, stagger: .08, duration: .5 }, '-=.4');
+
+    // Aurora langsam bewegen
+    document.querySelectorAll('.aurora i').forEach((el, i) => {
+      G.to(el, { x: () => G.utils.random(-120, 120), y: () => G.utils.random(-80, 80), scale: G.utils.random(.9, 1.2),
+                 duration: 12 + i * 3, ease: 'sine.inOut', repeat: -1, yoyo: true, repeatRefresh: true });
+    });
+    // Flugzeug quer über den Himmel
+    G.fromTo('.plane', { x: '-30vw', y: 30, rotate: -4 },
+      { x: '115vw', y: -30, duration: 26, ease: 'none', repeat: -1, repeatDelay: 4, delay: 1 });
+  }
+
+  // Spotlight auf Glas-Karten
+  document.addEventListener('pointermove', e => {
+    document.querySelectorAll('.glass').forEach(c => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  /* ---------- Sterne und Schnee ---------- */
   const sky = $('#sky'), sctx = sky.getContext('2d');
   let W = 0, H = 0, stars = [], flakes = [];
   function resizeSky() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = innerWidth; H = innerHeight;
     sky.width = W * dpr; sky.height = H * dpr; sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    stars = Array.from({ length: Math.round(W * H / 6000) }, () => ({
-      x: Math.random() * W, y: Math.random() * H * 0.75, r: Math.random() * 1.2 + 0.3, p: Math.random() * Math.PI * 2
-    }));
-    flakes = Array.from({ length: Math.round(W * H / 9000) }, () => newFlake(true));
+    stars = Array.from({ length: Math.round(W * H / 7000) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + .3, p: Math.random() * 7 }));
+    flakes = Array.from({ length: Math.round(W * H / 14000) }, () => newFlake(true));
   }
   function newFlake(anywhere) {
-    return { x: Math.random() * W, y: anywhere ? Math.random() * H : -10, r: Math.random() * 2.4 + 0.8,
-             s: Math.random() * 0.6 + 0.35, d: Math.random() * Math.PI * 2 };
+    return { x: Math.random() * W, y: anywhere ? Math.random() * H : -10, r: Math.random() * 2 + .6, s: Math.random() * .5 + .3, d: Math.random() * 7 };
   }
   function drawSky(t) {
     sctx.clearRect(0, 0, W, H);
-    for (const s of stars) {
-      sctx.globalAlpha = 0.45 + 0.4 * Math.sin(t / 900 + s.p);
-      sctx.fillStyle = '#fffbe8';
-      sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 7); sctx.fill();
-    }
-    sctx.globalAlpha = 0.85; sctx.fillStyle = '#ffffff';
+    sctx.fillStyle = '#fff';
+    for (const s of stars) { sctx.globalAlpha = .35 + .35 * Math.sin(t / 900 + s.p); sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 7); sctx.fill(); }
+    sctx.globalAlpha = .7;
     for (const f of flakes) {
-      f.y += f.s; f.x += Math.sin(t / 1400 + f.d) * 0.35;
+      f.y += f.s; f.x += Math.sin(t / 1400 + f.d) * .3;
       if (f.y > H + 5) Object.assign(f, newFlake(false));
       sctx.beginPath(); sctx.arc(f.x, f.y, f.r, 0, 7); sctx.fill();
     }
@@ -356,7 +340,7 @@
   const form = $('#form'), input = $('#code'), msg = $('#msg'), go = $('#go');
   function fail(text) {
     msg.textContent = text; msg.className = 'msg err';
-    form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+    if (motion) G.fromTo(form, { x: -8 }, { x: 0, duration: .5, ease: 'elastic.out(1, .3)' });
   }
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -366,10 +350,11 @@
     go.disabled = true; msg.className = 'msg'; msg.textContent = 'Prüfe dein Codewort …';
     try {
       const res = await openCode(code);
-      if (!res) { fail('Dieses Codewort kennen wir nicht. Bitte genau so eingeben, wie du es bekommen hast.'); return; }
-      const state = { code: code.toUpperCase(), res, revealed: false };
-      save(state);
-      showTicket(state, false);
+      if (!res || !Array.isArray(res.g)) { fail('Dieses Codewort kennen wir nicht. Bitte genau so eingeben, wie du es bekommen hast.'); return; }
+      const st = { code: code.toUpperCase(), res, open: Array(9).fill(false), done: false };
+      save(st);
+      if (motion) await G.to(form, { y: -20, opacity: 0, duration: .35, ease: 'power2.in' });
+      showGame(st, false);
     } catch (err) {
       fail('Da ist etwas schiefgelaufen. Bitte versuche es nochmal.');
     } finally {
@@ -377,152 +362,203 @@
     }
   });
 
-  /* ---------- Bordkarte ---------- */
-  let state = null;
-  function showTicket(s, returning) {
-    state = s;
-    form.classList.add('hidden');
-    $('#ticketBox').classList.remove('hidden');
-    $('#codeLabel').textContent = s.code;
-    buildPrize(s.res);
-    if (s.revealed) {
-      finish(false);
-      $('#note').textContent = 'Auf diesem Gerät wurde dein Los bereits aufgerubbelt.';
-    } else {
-      if (returning) $('#note').textContent = 'Willkommen zurück! Dein Los wartet noch aufs Rubbeln.';
-      document.fonts.ready.then(initFoil);
-    }
-  }
-
-  function buildPrize(res) {
-    const p = $('#prize');
-    p.innerHTML = '';
-    const el = (tag, cls, text) => { const n = document.createElement(tag); n.className = cls; if (text) n.textContent = text; p.appendChild(n); return n; };
-    if (res.w) {
-      p.className = 'prize win';
-      el('div', 'p-icon', '🎉');
-      el('div', 'p-title', 'Gewonnen!');
-      el('div', 'p-sub', 'Dein Flug-Gutschein:');
-      const v = el('div', 'voucher');
-      const c = document.createElement('code'); c.textContent = res.v; v.appendChild(c);
-      const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Kopieren'; v.appendChild(b);
-      b.addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(res.v); b.textContent = 'Kopiert ✓'; }
-        catch (e) { b.textContent = 'Bitte markieren'; }
-      });
-    } else {
-      p.className = 'prize lose';
-      el('div', 'p-icon', '❄️');
-      el('div', 'p-title', 'Leider kein Gewinn');
-      el('div', 'p-sub', 'Danke fürs Mitmachen! Frohe Weihnachten und einen guten Flug ins neue Jahr.');
-    }
-  }
-
-  /* ---------- Rubbelfeld ---------- */
+  /* ---------- Spielfeld ---------- */
+  let state = null, cells = [];
   const foil = $('#foil'), fctx = foil.getContext('2d');
-  let drawing = false, last = null, moves = 0, done = false;
+  let drawing = false, last = null, moves = 0, dpr = 1;
+
+  function showGame(st, returning) {
+    state = st;
+    form.classList.add('hidden');
+    $('#game').classList.remove('hidden');
+    $('#codeLabel').textContent = st.code;
+    $('#grid').innerHTML = st.res.g.map(s => '<div class="cell"><div class="sym">' + svgFor(s) + '</div></div>').join('');
+    if (motion) G.from('#game .ticket', { y: 40, opacity: 0, scale: .96, duration: .7, ease: 'back.out(1.4)' });
+    if (st.done) {
+      foil.classList.add('done'); fctx.clearRect(0, 0, foil.width, foil.height);
+      updateCount(); showResult(false);
+      $('#note').textContent = 'Auf diesem Gerät wurde dein Los bereits aufgerubbelt.';
+      return;
+    }
+    if (returning) $('#note').textContent = 'Willkommen zurück! Rubble dein Los fertig.';
+    document.fonts.ready.then(() => requestAnimationFrame(initFoil));
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
 
   function initFoil() {
-    const rect = foil.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    foil.width = rect.width * dpr; foil.height = rect.height * dpr;
+    // Layout-Masse (offset*) statt getBoundingClientRect: unabhängig von laufenden GSAP-Transforms
+    const bw = foil.offsetWidth, bh = foil.offsetHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    foil.width = bw * dpr; foil.height = bh * dpr;
     fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const w = rect.width, h = rect.height;
-
-    const g = fctx.createLinearGradient(0, 0, w, h);
-    g.addColorStop(0, '#b8872e'); g.addColorStop(0.3, '#f8e7a8'); g.addColorStop(0.55, '#d9ad52');
-    g.addColorStop(0.8, '#f3dc94'); g.addColorStop(1, '#a87a26');
     fctx.globalCompositeOperation = 'source-over';
-    fctx.fillStyle = g; fctx.fillRect(0, 0, w, h);
-
-    // Glitzer
-    for (let i = 0; i < w * h / 40; i++) {
-      fctx.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,0.35)' : 'rgba(120,80,10,0.18)';
-      fctx.fillRect(Math.random() * w, Math.random() * h, 1.2, 1.2);
-    }
-    // Schneeflocken-Muster
-    fctx.fillStyle = 'rgba(255,255,255,0.35)';
-    fctx.font = '16px sans-serif'; fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
-    for (let y = 14; y < h; y += 34) for (let x = (y / 34 % 2) * 22 + 12; x < w; x += 44) fctx.fillText('❄', x, y);
-    // Beschriftung
-    fctx.fillStyle = 'rgba(80, 52, 6, 0.85)';
-    fctx.font = '800 22px Nunito, sans-serif';
-    fctx.fillText('✈  HIER RUBBELN  ✈', w / 2, h / 2 - 8);
-    fctx.font = '600 13px Nunito, sans-serif';
-    fctx.fillText('mit Finger oder Maus', w / 2, h / 2 + 18);
+    fctx.clearRect(0, 0, bw, bh);
+    cells = [...document.querySelectorAll('#grid .cell')].map(el =>
+      ({ el, x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }));
+    cells.forEach((c, i) => {
+      if (state.open[i]) return;
+      const g = fctx.createLinearGradient(c.x, c.y, c.x + c.w, c.y + c.h);
+      g.addColorStop(0, '#c48a1c'); g.addColorStop(.35, '#ffe7a3'); g.addColorStop(.6, '#e0b04a'); g.addColorStop(1, '#a8740f');
+      fctx.fillStyle = g; roundRect(fctx, c.x, c.y, c.w, c.h, 16); fctx.fill();
+      for (let k = 0; k < c.w * c.h / 30; k++) {
+        fctx.fillStyle = Math.random() < .5 ? 'rgba(255,255,255,.35)' : 'rgba(110,70,0,.18)';
+        fctx.fillRect(c.x + 4 + Math.random() * (c.w - 8), c.y + 4 + Math.random() * (c.h - 8), 1.2, 1.2);
+      }
+      fctx.fillStyle = 'rgba(90,58,0,.55)';
+      fctx.font = '700 ' + Math.round(c.w * .32) + 'px Sora, sans-serif';
+      fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+      fctx.fillText('?', c.x + c.w / 2, c.y + c.h / 2 + 2);
+    });
+    updateCount();
   }
 
-  function pos(e) { const r = foil.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+  function pos(e) {
+    const r = foil.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * foil.offsetWidth / r.width, y: (e.clientY - r.top) * foil.offsetHeight / r.height };
+  }
   function scratchTo(p) {
     fctx.globalCompositeOperation = 'destination-out';
-    fctx.lineWidth = 42; fctx.lineCap = 'round'; fctx.lineJoin = 'round';
-    fctx.beginPath();
-    fctx.moveTo(last ? last.x : p.x, last ? last.y : p.y); fctx.lineTo(p.x + 0.01, p.y);
-    fctx.stroke();
+    fctx.lineWidth = 34; fctx.lineCap = 'round'; fctx.lineJoin = 'round';
+    fctx.beginPath(); fctx.moveTo(last ? last.x : p.x, last ? last.y : p.y); fctx.lineTo(p.x + .01, p.y); fctx.stroke();
     last = p;
-    if (++moves % 10 === 0) checkProgress();
+    if (++moves % 6 === 0) checkCells();
   }
-  function checkProgress() {
-    const data = fctx.getImageData(0, 0, foil.width, foil.height).data;
-    let clear = 0, total = 0;
-    for (let i = 3; i < data.length; i += 4 * 24) { total++; if (data[i] < 40) clear++; }
-    const ratio = clear / total;
-    if (ratio > 0.12) $('#revealAll').classList.remove('hidden');
-    if (ratio > 0.55) finish(true);
+  function checkCells() {
+    cells.forEach((c, i) => {
+      if (state.open[i]) return;
+      const data = fctx.getImageData(c.x * dpr, c.y * dpr, c.w * dpr, c.h * dpr).data;
+      let clear = 0, total = 0;
+      for (let k = 3; k < data.length; k += 4 * 12) { total++; if (data[k] < 40) clear++; }
+      if (clear / total > .42) openCell(i, true);
+    });
   }
 
-  foil.addEventListener('pointerdown', e => {
-    if (done) return;
-    drawing = true; last = null; foil.setPointerCapture(e.pointerId); scratchTo(pos(e));
+  function openCell(i, fx) {
+    if (state.open[i]) return;
+    state.open[i] = true;
+    const c = cells[i];
+    fctx.globalCompositeOperation = 'destination-out';
+    if (motion) {
+      const o = { a: 0 };
+      G.to(o, { a: 1, duration: .25, onUpdate: () => { fctx.globalAlpha = o.a; fctx.fillRect(c.x - 2, c.y - 2, c.w + 4, c.h + 4); fctx.globalAlpha = 1; } });
+      G.fromTo(c.el.querySelector('svg'), { scale: .3, rotate: -20 }, { scale: 1, rotate: 0, duration: .6, ease: 'back.out(2.2)' });
+    } else {
+      fctx.fillRect(c.x - 2, c.y - 2, c.w + 4, c.h + 4);
+    }
+    if (fx) sparks(c);
+    updateCount();
+    save(state);
+    if (state.open.every(Boolean)) finish(true);
+  }
+
+  function updateCount() {
+    const n = state.open.filter(Boolean).length;
+    $('#count').textContent = n + '/9';
+    $('#bar').style.width = (n / 9 * 100) + '%';
+    $('#revealAll').classList.toggle('hidden', n === 9);
+  }
+
+  foil.addEventListener('pointerdown', e => { if (state && !state.done) { drawing = true; last = null; foil.setPointerCapture(e.pointerId); scratchTo(pos(e)); } });
+  foil.addEventListener('pointermove', e => { if (drawing) scratchTo(pos(e)); });
+  ['pointerup', 'pointercancel'].forEach(t => foil.addEventListener(t, () => { drawing = false; last = null; checkCells(); }));
+  $('#revealAll').addEventListener('click', () => {
+    const rest = state.open.map((o, i) => o ? -1 : i).filter(i => i >= 0);
+    rest.forEach((i, k) => setTimeout(() => openCell(i, true), k * 140));
   });
-  foil.addEventListener('pointermove', e => { if (drawing && !done) scratchTo(pos(e)); });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => foil.addEventListener(t, () => { drawing = false; last = null; }));
-  $('#revealAll').addEventListener('click', () => finish(true));
 
+  /* ---------- Auswertung ---------- */
   function finish(celebrate) {
-    if (done) return;
-    done = true;
-    foil.classList.add('gone');
-    $('#revealAll').classList.add('hidden');
-    const win = !!state.res.w;
-    $('#dest').textContent = win ? 'WELT' : 'HEIM';
-    $('#seat').textContent = win ? '1A' : '24C';
-    $('#note').textContent = win
-      ? 'Herzlichen Glückwunsch! Mach am besten einen Screenshot von deinem Gutschein.'
-      : 'Schade! Vielleicht klappt es nächstes Mal. ✈';
-    if (!state.revealed) { state.revealed = true; save(state); }
-    if (celebrate && win) confetti();
+    if (state.done && celebrate) return;
+    state.done = true; save(state);
+    foil.classList.add('done');
+    setTimeout(() => showResult(celebrate), motion ? 450 : 0);
   }
 
-  /* ---------- Konfetti ---------- */
+  function showResult(celebrate) {
+    const g = state.res.g, win = !!state.res.w;
+    const planes = g.filter(s => s === 0).length;
+    const els = [...document.querySelectorAll('#grid .cell')];
+    g.forEach((s, i) => { if (s === 0) els[i].classList.add(win ? 'match' : 'near'); });
+    if (motion && win) {
+      G.to(els.filter((_, i) => g[i] === 0).map(e => e.querySelector('svg')),
+        { scale: 1.18, duration: .35, stagger: .12, yoyo: true, repeat: 3, ease: 'power2.inOut' });
+    }
+
+    const r = $('#result');
+    r.innerHTML = '';
+    const add = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; r.appendChild(n); return n; };
+    if (win) {
+      add('div', 'r-icon', '🎉');
+      const h = add('h2', 'shiny', '4 Flieger! Du fliegst!');
+      add('p', '', 'Herzlichen Glückwunsch, du hast den Flug-Gutschein gewonnen:');
+      const v = add('div', 'voucher');
+      const c = document.createElement('code'); c.textContent = state.res.v; v.appendChild(c);
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = 'Kopieren'; v.appendChild(b);
+      b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(state.res.v); b.textContent = 'Kopiert ✓'; } catch (e) { b.textContent = 'Markieren'; }
+      });
+      $('#note').textContent = 'Tipp: Mach einen Screenshot von deinem Gutschein.';
+      if (celebrate) confetti();
+    } else {
+      add('div', 'r-icon', planes === 3 ? '😮' : '❄️');
+      add('h2', '', planes === 3 ? 'So knapp!' : 'Leider kein Gewinn');
+      add('p', '', (planes === 3 ? 'Nur 3 von 4 Fliegern. ' : '') + 'Danke fürs Mitmachen! Frohe Weihnachten und einen guten Flug ins neue Jahr.');
+      $('#note').textContent = 'Schade! Vielleicht klappt es nächstes Mal. ✈';
+    }
+    r.classList.remove('hidden');
+    if (motion) G.from(r, { y: 30, opacity: 0, duration: .7, ease: 'back.out(1.5)' });
+    if (motion && celebrate) G.delayedCall(.3, () => r.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }
+
+  /* ---------- Effekte: Funken und Konfetti ---------- */
+  function sparks(c) {
+    if (!motion) return;
+    const br = foil.getBoundingClientRect();
+    const cx = br.left + c.x + c.w / 2, cy = br.top + c.y + c.h / 2;
+    for (let k = 0; k < 10; k++) {
+      const s = document.createElement('div'); s.className = 'spark';
+      s.style.left = cx + 'px'; s.style.top = cy + 'px';
+      document.body.appendChild(s);
+      const a = k / 10 * Math.PI * 2, d = 40 + Math.random() * 30;
+      G.to(s, { x: Math.cos(a) * d, y: Math.sin(a) * d, opacity: 0, scale: .3, duration: .6, ease: 'power2.out', onComplete: () => s.remove() });
+    }
+  }
   function confetti() {
     if (reduceMotion) return;
-    const c = $('#confetti'), ctx = c.getContext('2d');
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    c.width = innerWidth * dpr; c.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const colors = ['#e8c46a', '#f8e7a8', '#ffffff', '#d8434d', '#3fae6a'];
-    const parts = Array.from({ length: 180 }, () => ({
-      x: innerWidth / 2, y: innerHeight * 0.45,
-      vx: (Math.random() - 0.5) * 14, vy: Math.random() * -14 - 4,
-      r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.3,
-      c: colors[Math.floor(Math.random() * colors.length)]
+    const c = $('#fx'), ctx = c.getContext('2d');
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = innerWidth * d; c.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    const colors = ['#f5c451', '#ffe7a3', '#ffffff', '#fb7185', '#34d399', '#93c5fd'];
+    const parts = Array.from({ length: 200 }, () => ({
+      x: innerWidth / 2, y: innerHeight * .5, vx: (Math.random() - .5) * 15, vy: Math.random() * -15 - 4,
+      r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: colors[Math.floor(Math.random() * colors.length)]
     }));
     const start = performance.now();
     (function frame(t) {
       ctx.clearRect(0, 0, innerWidth, innerHeight);
       for (const p of parts) {
-        p.vy += 0.32; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.a += p.va;
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
-        ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2);
-        ctx.restore();
+        p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore();
       }
-      if (t - start < 4500) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+      if (t - start < 5000) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
     })(start);
   }
 
+  // Nur bei echter Breitenänderung neu zeichnen (Handy-Adressleiste löst auch resize aus)
+  let lastWidth = innerWidth;
+  addEventListener('resize', () => {
+    if (innerWidth === lastWidth) return;
+    lastWidth = innerWidth;
+    if (state && !state.done) initFoil();
+  });
+
   /* ---------- Start ---------- */
   const saved = load();
-  if (saved && saved.res) showTicket(saved, true);
+  if (saved && saved.res && Array.isArray(saved.res.g)) showGame(saved, true);
 })();
 </script>
 </body>
