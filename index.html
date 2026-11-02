@@ -133,7 +133,8 @@
     background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
     border: 1px solid var(--border); position: relative;
   }
-  .cell svg { width: 54%; height: 54%; filter: drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
+  .cell .sym { width: 54%; height: 54%; display: grid; place-items: center; }
+  .cell svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
   .cell.match { border-color: var(--gold); background: radial-gradient(circle, rgba(245,196,81,.28), rgba(245,196,81,.05)); box-shadow: 0 0 0 2px rgba(245,196,81,.35), 0 0 30px rgba(245,196,81,.35); }
   .cell.near { border-color: rgba(147,197,253,.5); }
   #foil { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
@@ -153,7 +154,24 @@
   }
   .voucher code { flex: 1; text-align: left; font: 700 16px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .05em; word-break: break-all; color: var(--gold-2); }
   .note { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+  .airlines {
+    margin-top: 14px; padding: 12px 14px; border-radius: 14px; font-size: 13px; color: var(--muted);
+    background: var(--faint); display: flex; gap: 10px; align-items: flex-start; text-align: left;
+  }
+  .airlines b { color: var(--text); }
+  .result .redeem { margin: 14px auto 0; font-size: 14px; }
+  .insta {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 11px 18px; border-radius: 14px;
+    color: #fff; font: 700 14px/1.2 'Sora', sans-serif; text-decoration: none;
+    background: linear-gradient(45deg, #f09433, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888);
+    box-shadow: 0 8px 24px rgba(220, 39, 67, .3); transition: filter .2s, transform .1s;
+  }
+  .insta:hover { filter: brightness(1.08); }
+  .insta:active { transform: scale(.98); }
+  .insta svg { width: 18px; height: 18px; }
   footer { text-align: center; color: #56618a; font-size: 12px; margin-top: 36px; }
+  footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid rgba(154,166,199,.35); }
+  footer a:hover { color: var(--text); }
 
   .hidden { display: none !important; }
   .spark { position: fixed; width: 6px; height: 6px; border-radius: 50%; pointer-events: none; z-index: 31; background: var(--gold-2); box-shadow: 0 0 8px var(--gold); }
@@ -194,6 +212,7 @@
         <div><b>4× ✈</b>gewinnt</div>
         <div><b>1</b>Gewinner</div>
       </div>
+      <div class="airlines"><span>✈</span><span>Der Gutschein gilt für Flüge mit <b>SWISS</b>, <b>Edelweiss</b> und <b>Lufthansa</b>.</span></div>
       <p class="hint">🔒 Jedes Los kann auf diesem Gerät nur einmal gerubbelt werden.</p>
     </form>
 
@@ -218,7 +237,7 @@
       <p class="note" id="note">Rubble mit dem Finger oder der Maus über die goldenen Felder.</p>
     </section>
 
-    <footer>Frohe Weihnachten ✨</footer>
+    <footer>Frohe Weihnachten ✨<br>Fragen? Schreib mir auf Instagram: <a href="https://www.instagram.com/joel__voit/" target="_blank" rel="noopener">@joel__voit</a></footer>
   </main>
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
@@ -454,7 +473,8 @@
     if (motion) {
       const o = { a: 0 };
       G.to(o, { a: 1, duration: .25, onUpdate: () => { fctx.globalAlpha = o.a; fctx.fillRect(c.x - 2, c.y - 2, c.w + 4, c.h + 4); fctx.globalAlpha = 1; } });
-      G.fromTo(c.el.querySelector('svg'), { scale: .3, rotate: -20 }, { scale: 1, rotate: 0, duration: .6, ease: 'back.out(2.2)' });
+      // Den .sym-Div animieren, nicht das SVG: GSAP dreht SVGs sonst um die linke obere Ecke
+      G.fromTo(c.el.querySelector('.sym'), { scale: .3, rotate: -20 }, { scale: 1, rotate: 0, duration: .6, ease: 'back.out(2.2)' });
     } else {
       fctx.fillRect(c.x - 2, c.y - 2, c.w + 4, c.h + 4);
     }
@@ -493,7 +513,7 @@
     const els = [...document.querySelectorAll('#grid .cell')];
     g.forEach((s, i) => { if (s === 0) els[i].classList.add(win ? 'match' : 'near'); });
     if (motion && win) {
-      G.to(els.filter((_, i) => g[i] === 0).map(e => e.querySelector('svg')),
+      G.to(els.filter((_, i) => g[i] === 0).map(e => e.querySelector('.sym')),
         { scale: 1.18, duration: .35, stagger: .12, yoyo: true, repeat: 3, ease: 'power2.inOut' });
     }
 
@@ -510,6 +530,11 @@
       b.addEventListener('click', async () => {
         try { await navigator.clipboard.writeText(state.res.v); b.textContent = 'Kopiert ✓'; } catch (e) { b.textContent = 'Markieren'; }
       });
+      add('p', 'redeem', 'Einlösbar für Flüge mit SWISS, Edelweiss und Lufthansa. Schreib mir auf Instagram, dann erkläre ich dir Schritt für Schritt, wie du den Gutschein einlöst.');
+      const ig = document.createElement('a');
+      ig.className = 'insta'; ig.href = 'https://www.instagram.com/joel__voit/'; ig.target = '_blank'; ig.rel = 'noopener';
+      ig.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>Anleitung auf Instagram: @joel__voit';
+      r.appendChild(ig);
       $('#note').textContent = 'Tipp: Mach einen Screenshot von deinem Gutschein.';
       if (celebrate) confetti();
     } else {
