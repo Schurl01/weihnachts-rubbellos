@@ -182,6 +182,27 @@
   footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid rgba(154,166,199,.35); }
   footer a:hover { color: var(--text); }
 
+  /* ---------- Gewinner-Show ---------- */
+  .win-show {
+    position: fixed; inset: 0; z-index: 25; overflow: hidden; cursor: pointer;
+    display: grid; place-items: center; background: rgba(6, 11, 29, 0);
+  }
+  .win-show .ws-plane { position: absolute; top: 22%; left: 0; display: flex; align-items: center; will-change: transform; }
+  .win-show .ws-plane svg { width: 120px; flex: none; }
+  .win-show .ws-rope { width: 40px; height: 2px; background: rgba(255,255,255,.7); flex: none; }
+  .win-show .ws-banner {
+    padding: 10px 18px; border-radius: 6px 14px 14px 6px; white-space: nowrap;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold)); color: #241800;
+    font: 800 18px/1 'Sora', sans-serif; letter-spacing: .04em; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  .win-show .ws-text { text-align: center; padding: 0 16px; }
+  .win-show .ws-big {
+    font: 800 clamp(48px, 15vw, 96px)/1 'Sora', sans-serif; letter-spacing: -.04em;
+    filter: drop-shadow(0 10px 40px rgba(245,196,81,.45));
+  }
+  .win-show .ws-small { margin-top: 12px; color: var(--text); font-weight: 600; font-size: 18px; }
+  .win-show .ws-skip { position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 12px; }
+
   .hidden { display: none !important; }
   .spark { position: fixed; width: 6px; height: 6px; border-radius: 50%; pointer-events: none; z-index: 31; background: var(--gold-2); box-shadow: 0 0 8px var(--gold); }
 
@@ -506,6 +527,7 @@
   foil.addEventListener('pointermove', e => { if (drawing) scratchTo(pos(e)); });
   ['pointerup', 'pointercancel'].forEach(t => foil.addEventListener(t, () => { drawing = false; last = null; checkCells(); }));
   $('#revealAll').addEventListener('click', () => {
+    if (!state) return;
     const rest = state.open.map((o, i) => o ? -1 : i).filter(i => i >= 0);
     rest.forEach((i, k) => setTimeout(() => openCell(i, true), k * 140));
   });
@@ -547,16 +569,21 @@
       ig.innerHTML = $('#igIconTpl').outerHTML.replace(' id="igIconTpl"', '') + 'Anleitung auf Instagram: @joel__voit';
       r.appendChild(ig);
       $('#note').textContent = 'Tipp: Mach einen Screenshot von deinem Gutschein.';
-      if (celebrate) confetti();
     } else {
       add('div', 'r-icon', planes === 3 ? '😮' : '❄️');
       add('h2', '', planes === 3 ? 'So knapp!' : 'Leider kein Gewinn');
       add('p', '', (planes === 3 ? 'Nur 3 von 4 Fliegern. ' : '') + 'Danke fürs Mitmachen! Frohe Weihnachten und einen guten Flug ins neue Jahr.');
       $('#note').textContent = 'Schade! Vielleicht klappt es nächstes Mal. ✈';
     }
-    r.classList.remove('hidden');
-    if (motion) G.from(r, { y: 30, opacity: 0, duration: .7, ease: 'back.out(1.5)' });
-    if (motion && celebrate) G.delayedCall(.3, () => r.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    function revealCard() {
+      r.classList.remove('hidden');
+      if (motion) G.from(r, { y: 30, opacity: 0, duration: .7, ease: 'back.out(1.5)' });
+      if (motion && celebrate) G.delayedCall(.3, () => r.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      if (win && celebrate) confetti();
+    }
+    // Gewinner: erst die 4 Flieger kurz leuchten lassen, dann die Show, dann der Gutschein
+    if (win && celebrate && motion) G.delayedCall(1.4, () => winShow().then(revealCard));
+    else revealCard();
   }
 
   /* ---------- Effekte: Funken und Konfetti ---------- */
@@ -572,25 +599,78 @@
       G.to(s, { x: Math.cos(a) * d, y: Math.sin(a) * d, opacity: 0, scale: .3, duration: .6, ease: 'power2.out', onComplete: () => s.remove() });
     }
   }
+  // Ein gemeinsamer Partikel-Loop für Konfetti und Feuerwerk
+  const FX_COLORS = ['#f5c451', '#ffe7a3', '#ffffff', '#fb7185', '#34d399', '#93c5fd'];
+  const fxCanvas = $('#fx'), fxCtx = fxCanvas.getContext('2d');
+  let fxParts = [], fxRunning = false;
+  function fxStart() {
+    if (fxRunning) return;
+    fxRunning = true;
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    fxCanvas.width = innerWidth * d; fxCanvas.height = innerHeight * d; fxCtx.setTransform(d, 0, 0, d, 0, 0);
+    (function frame() {
+      fxCtx.clearRect(0, 0, innerWidth, innerHeight);
+      fxParts = fxParts.filter(p => p.life > 0 && p.y < innerHeight + 40);
+      for (const p of fxParts) {
+        p.vy += p.g; p.vx *= p.drag; p.vy *= p.drag; p.x += p.vx; p.y += p.vy; p.a += p.va; p.life--;
+        fxCtx.globalAlpha = Math.min(1, p.life / 30);
+        fxCtx.fillStyle = p.c;
+        if (p.kind === 'spark') { fxCtx.beginPath(); fxCtx.arc(p.x, p.y, p.r, 0, 7); fxCtx.fill(); }
+        else { fxCtx.save(); fxCtx.translate(p.x, p.y); fxCtx.rotate(p.a); fxCtx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); fxCtx.restore(); }
+      }
+      fxCtx.globalAlpha = 1;
+      if (fxParts.length) requestAnimationFrame(frame); else { fxRunning = false; fxCtx.clearRect(0, 0, innerWidth, innerHeight); }
+    })();
+  }
+  const pick = () => FX_COLORS[Math.floor(Math.random() * FX_COLORS.length)];
   function confetti() {
     if (reduceMotion) return;
-    const c = $('#fx'), ctx = c.getContext('2d');
-    const d = Math.min(window.devicePixelRatio || 1, 2);
-    c.width = innerWidth * d; c.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0);
-    const colors = ['#f5c451', '#ffe7a3', '#ffffff', '#fb7185', '#34d399', '#93c5fd'];
-    const parts = Array.from({ length: 200 }, () => ({
-      x: innerWidth / 2, y: innerHeight * .5, vx: (Math.random() - .5) * 15, vy: Math.random() * -15 - 4,
-      r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: colors[Math.floor(Math.random() * colors.length)]
-    }));
-    const start = performance.now();
-    (function frame(t) {
-      ctx.clearRect(0, 0, innerWidth, innerHeight);
-      for (const p of parts) {
-        p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore();
-      }
-      if (t - start < 5000) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
-    })(start);
+    for (let i = 0; i < 200; i++) fxParts.push({
+      kind: 'confetti', x: innerWidth / 2, y: innerHeight * .5, vx: (Math.random() - .5) * 15, vy: Math.random() * -15 - 4,
+      g: .32, drag: .99, r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: pick(), life: 300
+    });
+    fxStart();
+  }
+  function firework(x, y) {
+    if (reduceMotion) return;
+    const c = pick();
+    for (let i = 0; i < 48; i++) {
+      const a = i / 48 * Math.PI * 2, s = 3 + Math.random() * 3.5;
+      fxParts.push({ kind: 'spark', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: .05, drag: .975,
+                     r: 2.2, a: 0, va: 0, c: Math.random() < .25 ? '#fff' : c, life: 70 + Math.random() * 30 });
+    }
+    fxStart();
+  }
+
+  // Kleine Gewinner-Show: Flieger mit Banner, Feuerwerk, grosser Text. Antippen überspringt.
+  function winShow() {
+    return new Promise(resolve => {
+      if (!motion) return resolve();
+      const ov = document.createElement('div');
+      ov.className = 'win-show';
+      ov.innerHTML =
+        '<div class="ws-plane"><div class="ws-banner">✈ GEWONNEN! ✈</div><div class="ws-rope"></div>' +
+        '<svg viewBox="0 0 120 40"><path d="M8 20c0-4 6-5 14-5h70c12 0 22 3 25 5-3 2-13 5-25 5H22c-8 0-14-1-14-5z" fill="#eef2fb"/><path d="M50 16 66 2h8l-8 14z" fill="#dfe6f6"/><path d="M50 24 64 37h8l-6-13z" fill="#c9d3ea"/><path d="M10 16 4 5h8l10 10z" fill="#fb7185"/></svg></div>' +
+        '<div class="ws-text"><div class="ws-big shiny">Du fliegst!</div><div class="ws-small">4 von 4 Fliegern gefunden ✈</div></div>' +
+        '<div class="ws-skip">Tippen zum Weiter</div>';
+      document.body.appendChild(ov);
+      const plane = ov.querySelector('.ws-plane');
+      const tl = G.timeline({ onComplete: done });
+      let closed = false;
+      function done() { if (closed) return; closed = true; tl.kill(); G.to(ov, { opacity: 0, duration: .4, onComplete: () => { ov.remove(); resolve(); } }); }
+      ov.addEventListener('click', done, { once: true });
+
+      tl.to(ov, { backgroundColor: 'rgba(6, 11, 29, .86)', backdropFilter: 'blur(6px)', duration: .4 })
+        .fromTo(plane, { x: () => -plane.offsetWidth - 20, y: 40, rotate: -6 },
+          { x: () => innerWidth + 20, y: -30, rotate: -2, duration: 2.6, ease: 'power1.inOut' }, 0)
+        .from(ov.querySelector('.ws-big'), { scale: .2, opacity: 0, rotate: -8, duration: .8, ease: 'back.out(2)' }, .5)
+        .from(ov.querySelector('.ws-small'), { y: 20, opacity: 0, duration: .5 }, 1.0)
+        .from(ov.querySelector('.ws-skip'), { opacity: 0, duration: .4 }, 1.2)
+        .to(ov.querySelector('.ws-big'), { scale: 1.06, duration: .5, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 1.3);
+      [[.25, .3, .7], [.75, .25, .9], [.5, .18, 1.2], [.2, .55, 1.6], [.8, .5, 1.9], [.5, .35, 2.3]]
+        .forEach(([fx, fy, t]) => tl.call(() => firework(innerWidth * fx, innerHeight * fy), null, t));
+      tl.to({}, { duration: .6 }, 3.6);
+    });
   }
 
   // Nur bei echter Breitenänderung neu zeichnen (Handy-Adressleiste löst auch resize aus)
