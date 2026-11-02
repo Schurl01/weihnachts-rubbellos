@@ -224,7 +224,15 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="data.js"></script>
+<script>
+  // data.js immer frisch laden, damit ein neuer Gutschein sofort gilt (kein Browser-Cache)
+  window.LOS_READY = new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'data.js?t=' + Date.now();
+    s.onload = s.onerror = resolve;
+    document.head.appendChild(s);
+  });
+</script>
 <script>
 (() => {
   const $ = s => document.querySelector(s);
@@ -346,6 +354,7 @@
     e.preventDefault();
     const code = input.value.trim();
     if (norm(code).length < 4) return fail('Bitte gib dein ganzes Codewort ein.');
+    await window.LOS_READY;
     if (!window.LOS_DATA || !window.crypto || !crypto.subtle) return fail('Die Seite konnte nicht geladen werden. Bitte neu laden.');
     go.disabled = true; msg.className = 'msg'; msg.textContent = 'Prüfe dein Codewort …';
     try {
