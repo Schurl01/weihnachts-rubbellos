@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weihnachts-Rubbellos</title>
+<meta name="description" content="Gib dein Codewort ein, rubble dein Los frei und gewinne einen Flug-Gutschein.">
+<meta name="theme-color" content="#0b1630">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0b1630;
+    --night-2: #16295a;
+    --gold: #e8c46a;
+    --gold-2: #f8e7a8;
+    --gold-3: #b8872e;
+    --snow: #f4f7ff;
+    --muted: #a9b6d6;
+    --red: #d8434d;
+    --card: rgba(16, 30, 66, 0.72);
+    --line: rgba(232, 196, 106, 0.35);
+    --paper: #fdfaf1;
+    --ink: #1c2540;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: radial-gradient(ellipse at 50% -10%, #24407e 0%, var(--night-2) 35%, var(--night) 75%);
+    background-color: var(--night);
+    color: var(--snow);
+    font: 16px/1.5 'Nunito', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Himmel */
+  #sky, #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #confetti { z-index: 20; }
+  .moon {
+    position: fixed; top: 7vh; right: 9vw; width: 70px; height: 70px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fffbe8, #f3e3a8 60%, #d9c27a);
+    box-shadow: 0 0 40px 12px rgba(248, 231, 168, 0.25);
+  }
+  .plane {
+    position: fixed; bottom: 30vh; left: 0; width: 120px; pointer-events: none; z-index: 1;
+    animation: fly 28s linear infinite; animation-delay: -6s;
+  }
+  .plane svg { width: 100%; display: block; }
+  .plane .trail {
+    position: absolute; right: 92%; top: 46%; height: 3px; width: 46vw;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45));
+    border-radius: 2px;
+  }
+  .plane .blink { animation: blink 1.2s steps(1) infinite; }
+  @keyframes fly {
+    0% { transform: translate(-40vw, 6vh) rotate(-3deg); }
+    100% { transform: translate(130vw, -4vh) rotate(-3deg); }
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .hills { position: fixed; left: 0; right: 0; bottom: 0; height: 22vh; min-height: 120px; pointer-events: none; }
+  .hills svg { width: 100%; height: 100%; display: block; }
+
+  /* Inhalt */
+  main {
+    position: relative; z-index: 2;
+    max-width: 460px; margin: 0 auto;
+    padding: max(6vh, 32px) 16px 26vh;
+  }
+  .eyebrow {
+    text-align: center; letter-spacing: .22em; text-transform: uppercase;
+    font-size: 12px; font-weight: 800; color: var(--gold);
+  }
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif; font-style: italic;
+    font-size: clamp(34px, 9vw, 48px); line-height: 1.08; text-align: center;
+    margin: 8px 0 12px;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold) 55%, var(--gold-3));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 2px 30px rgba(232, 196, 106, 0.18);
+  }
+  .lead { text-align: center; color: var(--muted); margin: 0 auto 26px; max-width: 36ch; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 22px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+  label { display: block; font-weight: 800; margin-bottom: 8px; }
+  .field { display: flex; gap: 10px; }
+  input[type=text] {
+    flex: 1; min-width: 0;
+    background: rgba(5, 12, 30, 0.6); color: var(--snow);
+    border: 1.5px solid rgba(169, 182, 214, 0.35); border-radius: 12px;
+    padding: 13px 14px; font: 700 17px/1.2 'Nunito', sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    outline: none; transition: border-color .2s;
+  }
+  input[type=text]::placeholder { text-transform: none; letter-spacing: 0; font-weight: 400; color: #6f7ea5; }
+  input[type=text]:focus { border-color: var(--gold); }
+  .btn {
+    border: 0; border-radius: 12px; padding: 13px 18px; cursor: pointer;
+    font: 800 16px/1.2 'Nunito', sans-serif; color: #2a1d00;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold) 60%, #d3a94c);
+    box-shadow: 0 4px 14px rgba(232, 196, 106, 0.3);
+    transition: transform .1s, filter .2s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .msg { min-height: 1.5em; margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+  .msg.err { color: #ff9aa0; }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  .hint { margin: 16px 0 0; font-size: 13px; color: var(--muted); text-align: center; }
+
+  /* Bordkarte mit Rubbelfeld */
+  .ticket {
+    position: relative; background: var(--paper); color: var(--ink);
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    animation: pop .5s cubic-bezier(.2, 1.4, .4, 1);
+  }
+  @keyframes pop { from { transform: translateY(16px) scale(.96); opacity: 0; } }
+  .t-head {
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(90deg, #a8242d, var(--red));
+    color: #fff; padding: 12px 18px; font-weight: 800; letter-spacing: .12em; font-size: 13px;
+  }
+  .t-head b { font-size: 15px; letter-spacing: .08em; }
+  .t-head b, .t-head span { white-space: nowrap; }
+  @media (max-width: 380px) { .t-head { font-size: 11px; padding: 12px 14px; } .t-head b { font-size: 13px; } }
+  .t-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 16px 18px 6px; gap: 8px; }
+  .t-grid .k { font-size: 11px; letter-spacing: .14em; color: #7a809a; font-weight: 800; }
+  .t-grid .v { font-size: 26px; font-weight: 800; line-height: 1.1; }
+  .t-grid .to { text-align: right; }
+  .t-grid .mid { color: var(--red); font-size: 22px; }
+  .t-meta { display: flex; justify-content: space-between; padding: 6px 18px 14px; font-size: 13px; }
+  .t-meta .k { display: block; font-size: 10px; letter-spacing: .14em; color: #7a809a; font-weight: 800; }
+  .t-meta b { font-weight: 800; }
+  .perf {
+    position: relative; height: 0; border-top: 2px dashed #d7cfb5; margin: 0 14px;
+  }
+  .perf::before, .perf::after {
+    content: ''; position: absolute; top: -13px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--night);
+  }
+  .perf::before { left: -26px; } .perf::after { right: -26px; }
+
+  .scratch-wrap { padding: 16px 16px 10px; }
+  .scratch {
+    position: relative; height: 210px; border-radius: 14px; overflow: hidden;
+    background: linear-gradient(160deg, #fff8e6, #f6ebcf);
+    border: 1px solid #eadfbf;
+  }
+  .prize {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; padding: 14px;
+  }
+  .prize .p-icon { font-size: 40px; line-height: 1; }
+  .prize .p-title { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 30px; margin: 6px 0 2px; }
+  .prize.win .p-title { color: #a8242d; }
+  .prize .p-sub { font-size: 14px; color: #555c75; max-width: 30ch; }
+  .voucher {
+    margin-top: 10px; display: flex; align-items: center; gap: 8px;
+    background: #fff; border: 2px dashed var(--gold-3); border-radius: 10px; padding: 6px 6px 6px 12px;
+    max-width: 100%;
+  }
+  .voucher code { font: 800 16px/1.2 ui-monospace, Consolas, monospace; letter-spacing: .05em; word-break: break-all; }
+  .voucher button {
+    border: 0; border-radius: 7px; background: var(--ink); color: #fff; font: 700 12px 'Nunito', sans-serif;
+    padding: 7px 10px; cursor: pointer; white-space: nowrap;
+  }
+  #foil {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    touch-action: none; cursor: grab; transition: opacity .7s;
+  }
+  #foil.gone { opacity: 0; pointer-events: none; }
+  .t-foot {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 4px 18px 16px; font-size: 12px; color: #6a708a;
+  }
+  .t-foot b { color: var(--ink); letter-spacing: .05em; }
+  .linkbtn { background: none; border: 0; padding: 0; color: #a8242d; font: 800 12px 'Nunito', sans-serif; cursor: pointer; text-decoration: underline; }
+  .barcode {
+    height: 34px; margin: 0 18px 16px; opacity: .8;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 8px, var(--ink) 8px 11px, transparent 11px 12px);
+  }
+  .note { text-align: center; color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+  .hidden { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plane { display: none; }
+    .ticket { animation: none; }
+  }
+  @media (max-width: 700px) {
+    .moon { top: 14px; right: 14px; width: 40px; height: 40px; }
+    .plane { width: 90px; }
+  }
+  @media (max-width: 380px) {
+    .t-grid .v { font-size: 22px; }
+    .field { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="moon" aria-hidden="true"></div>
+  <div class="plane" aria-hidden="true">
+    <div class="trail"></div>
+    <svg viewBox="0 0 120 40">
+      <path d="M8 20 C8 16 14 15 22 15 L92 15 C104 15 114 18 117 20 C114 22 104 25 92 25 L22 25 C14 25 8 24 8 20 Z" fill="#eef2fb"/>
+      <path d="M50 16 L66 2 L74 2 L66 16 Z" fill="#dfe6f6"/>
+      <path d="M50 24 L64 36 L72 36 L66 24 Z" fill="#c9d3ea"/>
+      <path d="M10 16 L4 5 L12 5 L22 15 Z" fill="#d8434d"/>
+      <circle cx="104" cy="19" r="1.6" fill="#16295a"/>
+      <g fill="#16295a" opacity=".55"><circle cx="34" cy="19" r="1.1"/><circle cx="40" cy="19" r="1.1"/><circle cx="46" cy="19" r="1.1"/><circle cx="72" cy="19" r="1.1"/><circle cx="78" cy="19" r="1.1"/><circle cx="84" cy="19" r="1.1"/><circle cx="90" cy="19" r="1.1"/></g>
+      <circle class="blink" cx="6" cy="6" r="2.2" fill="#ff4b55"/>
+    </svg>
+  </div>
+  <div class="hills" aria-hidden="true">
+    <svg viewBox="0 0 1440 220" preserveAspectRatio="xMidYMax slice">
+      <path d="M0 120 C200 70 380 90 560 120 S900 80 1100 100 S1360 70 1440 90 V220 H0 Z" fill="#c9d6f2" opacity=".35"/>
+      <g fill="#0e1d42">
+        <path d="M150 112 l14 -40 l14 40 z"/><path d="M175 116 l10 -28 l10 28 z"/>
+        <path d="M1180 96 l16 -46 l16 46 z"/><path d="M1210 100 l11 -30 l11 30 z"/><path d="M1160 100 l9 -24 l9 24 z"/>
+      </g>
+      <path d="M0 160 C240 120 420 150 640 160 S1040 120 1240 140 S1400 130 1440 135 V220 H0 Z" fill="#eaf0ff"/>
+      <g fill="#14295a">
+        <path d="M300 152 l18 -54 l18 54 z"/><path d="M330 156 l12 -36 l12 36 z"/>
+        <path d="M880 146 l20 -60 l20 60 z"/><path d="M912 148 l13 -38 l13 38 z"/><path d="M860 150 l10 -28 l10 28 z"/>
+      </g>
+      <g fill="#ffd36b">
+        <circle cx="318" cy="128" r="2.2"/><circle cx="310" cy="140" r="2"/><circle cx="326" cy="144" r="2"/>
+        <circle cx="900" cy="118" r="2.2"/><circle cx="892" cy="132" r="2"/><circle cx="910" cy="138" r="2"/>
+      </g>
+      <path d="M318 96 l2 5 l5 0 l-4 3 l2 5 l-5 -3 l-5 3 l2 -5 l-4 -3 l5 0 z" fill="#ffd36b"/>
+      <path d="M900 84 l2 5 l5 0 l-4 3 l2 5 l-5 -3 l-5 3 l2 -5 l-4 -3 l5 0 z" fill="#ffd36b"/>
+    </svg>
+  </div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <main>
+    <div class="eyebrow">✈ Weihnachts-Verlosung 2026</div>
+    <h1>Dein Flug-Rubbellos</h1>
+    <p class="lead">Gib dein Codewort ein und rubble deine Bordkarte frei. Nur ein einziges Los gewinnt einen Flug-Gutschein.</p>
+
+    <form id="form" class="card" autocomplete="off">
+      <label for="code">Dein Codewort</label>
+      <div class="field">
+        <input id="code" type="text" placeholder="z. B. STERN-ABC12" autocapitalize="characters" spellcheck="false" required>
+        <button class="btn" id="go" type="submit">Los holen</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+      <p class="hint">Jedes Codewort kann auf diesem Gerät nur einmal eingelöst werden.</p>
+    </form>
+
+    <section id="ticketBox" class="hidden">
+      <div class="ticket">
+        <div class="t-head"><b>✈ XMAS AIR</b><span>BOARDING PASS</span></div>
+        <div class="t-grid">
+          <div><div class="k">VON</div><div class="v">ZRH</div></div>
+          <div class="mid">✈</div>
+          <div class="to"><div class="k">NACH</div><div class="v" id="dest">???</div></div>
+        </div>
+        <div class="t-meta">
+          <div><span class="k">FLUG</span><b>XM 2412</b></div>
+          <div><span class="k">DATUM</span><b>24 DEZ</b></div>
+          <div><span class="k">GATE</span><b>N0RD</b></div>
+          <div><span class="k">SITZ</span><b id="seat">?</b></div>
+        </div>
+        <div class="perf"></div>
+        <div class="scratch-wrap">
+          <div class="scratch">
+            <div class="prize" id="prize"></div>
+            <canvas id="foil" aria-label="Rubbelfeld: mit Finger oder Maus freirubbeln"></canvas>
+          </div>
+        </div>
+        <div class="t-foot">
+          <span>Codewort: <b id="codeLabel"></b></span>
+          <button class="linkbtn hidden" id="revealAll" type="button">Ganz aufdecken</button>
+        </div>
+        <div class="barcode" aria-hidden="true"></div>
+      </div>
+      <p class="note" id="note">Rubble mit dem Finger oder der Maus über das goldene Feld.</p>
+    </section>
+  </main>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const STORE_KEY = 'xmas-rubbellos-2026';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Sternenhimmel und Schnee ---------- */
+  const sky = $('#sky'), sctx = sky.getContext('2d');
+  let W = 0, H = 0, stars = [], flakes = [];
+  function resizeSky() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    sky.width = W * dpr; sky.height = H * dpr; sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stars = Array.from({ length: Math.round(W * H / 6000) }, () => ({
+      x: Math.random() * W, y: Math.random() * H * 0.75, r: Math.random() * 1.2 + 0.3, p: Math.random() * Math.PI * 2
+    }));
+    flakes = Array.from({ length: Math.round(W * H / 9000) }, () => newFlake(true));
+  }
+  function newFlake(anywhere) {
+    return { x: Math.random() * W, y: anywhere ? Math.random() * H : -10, r: Math.random() * 2.4 + 0.8,
+             s: Math.random() * 0.6 + 0.35, d: Math.random() * Math.PI * 2 };
+  }
+  function drawSky(t) {
+    sctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      sctx.globalAlpha = 0.45 + 0.4 * Math.sin(t / 900 + s.p);
+      sctx.fillStyle = '#fffbe8';
+      sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 7); sctx.fill();
+    }
+    sctx.globalAlpha = 0.85; sctx.fillStyle = '#ffffff';
+    for (const f of flakes) {
+      f.y += f.s; f.x += Math.sin(t / 1400 + f.d) * 0.35;
+      if (f.y > H + 5) Object.assign(f, newFlake(false));
+      sctx.beginPath(); sctx.arc(f.x, f.y, f.r, 0, 7); sctx.fill();
+    }
+    sctx.globalAlpha = 1;
+    if (!reduceMotion) requestAnimationFrame(drawSky);
+  }
+  addEventListener('resize', resizeSky);
+  resizeSky(); requestAnimationFrame(drawSky);
+
+  /* ---------- Speicher (einmal pro Gerät) ---------- */
+  function load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; } }
+  function save(o) { try { localStorage.setItem(STORE_KEY, JSON.stringify(o)); } catch (e) {} }
+
+  /* ---------- Krypto ---------- */
+  const norm = s => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const hex = u8 => [...u8].map(b => b.toString(16).padStart(2, '0')).join('');
+  async function openCode(code) {
+    const D = window.LOS_DATA;
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(norm(code)), 'PBKDF2', false, ['deriveBits']);
+    const bits = new Uint8Array(await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: b64d(D.salt), iterations: D.iter, hash: 'SHA-256' }, base, 512));
+    const entry = D.entries.find(e => e.id === hex(bits.slice(0, 16)));
+    if (!entry) return null;
+    const key = await crypto.subtle.importKey('raw', bits.slice(32), 'AES-GCM', false, ['decrypt']);
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(entry.iv) }, key, b64d(entry.ct));
+    return JSON.parse(new TextDecoder().decode(plain).trim());
+  }
+
+  /* ---------- Formular ---------- */
+  const form = $('#form'), input = $('#code'), msg = $('#msg'), go = $('#go');
+  function fail(text) {
+    msg.textContent = text; msg.className = 'msg err';
+    form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+  }
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const code = input.value.trim();
+    if (norm(code).length < 4) return fail('Bitte gib dein ganzes Codewort ein.');
+    if (!window.LOS_DATA || !window.crypto || !crypto.subtle) return fail('Die Seite konnte nicht geladen werden. Bitte neu laden.');
+    go.disabled = true; msg.className = 'msg'; msg.textContent = 'Prüfe dein Codewort …';
+    try {
+      const res = await openCode(code);
+      if (!res) { fail('Dieses Codewort kennen wir nicht. Bitte genau so eingeben, wie du es bekommen hast.'); return; }
+      const state = { code: code.toUpperCase(), res, revealed: false };
+      save(state);
+      showTicket(state, false);
+    } catch (err) {
+      fail('Da ist etwas schiefgelaufen. Bitte versuche es nochmal.');
+    } finally {
+      go.disabled = false;
+    }
+  });
+
+  /* ---------- Bordkarte ---------- */
+  let state = null;
+  function showTicket(s, returning) {
+    state = s;
+    form.classList.add('hidden');
+    $('#ticketBox').classList.remove('hidden');
+    $('#codeLabel').textContent = s.code;
+    buildPrize(s.res);
+    if (s.revealed) {
+      finish(false);
+      $('#note').textContent = 'Auf diesem Gerät wurde dein Los bereits aufgerubbelt.';
+    } else {
+      if (returning) $('#note').textContent = 'Willkommen zurück! Dein Los wartet noch aufs Rubbeln.';
+      document.fonts.ready.then(initFoil);
+    }
+  }
+
+  function buildPrize(res) {
+    const p = $('#prize');
+    p.innerHTML = '';
+    const el = (tag, cls, text) => { const n = document.createElement(tag); n.className = cls; if (text) n.textContent = text; p.appendChild(n); return n; };
+    if (res.w) {
+      p.className = 'prize win';
+      el('div', 'p-icon', '🎉');
+      el('div', 'p-title', 'Gewonnen!');
+      el('div', 'p-sub', 'Dein Flug-Gutschein:');
+      const v = el('div', 'voucher');
+      const c = document.createElement('code'); c.textContent = res.v; v.appendChild(c);
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Kopieren'; v.appendChild(b);
+      b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(res.v); b.textContent = 'Kopiert ✓'; }
+        catch (e) { b.textContent = 'Bitte markieren'; }
+      });
+    } else {
+      p.className = 'prize lose';
+      el('div', 'p-icon', '❄️');
+      el('div', 'p-title', 'Leider kein Gewinn');
+      el('div', 'p-sub', 'Danke fürs Mitmachen! Frohe Weihnachten und einen guten Flug ins neue Jahr.');
+    }
+  }
+
+  /* ---------- Rubbelfeld ---------- */
+  const foil = $('#foil'), fctx = foil.getContext('2d');
+  let drawing = false, last = null, moves = 0, done = false;
+
+  function initFoil() {
+    const rect = foil.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    foil.width = rect.width * dpr; foil.height = rect.height * dpr;
+    fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width, h = rect.height;
+
+    const g = fctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#b8872e'); g.addColorStop(0.3, '#f8e7a8'); g.addColorStop(0.55, '#d9ad52');
+    g.addColorStop(0.8, '#f3dc94'); g.addColorStop(1, '#a87a26');
+    fctx.globalCompositeOperation = 'source-over';
+    fctx.fillStyle = g; fctx.fillRect(0, 0, w, h);
+
+    // Glitzer
+    for (let i = 0; i < w * h / 40; i++) {
+      fctx.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,0.35)' : 'rgba(120,80,10,0.18)';
+      fctx.fillRect(Math.random() * w, Math.random() * h, 1.2, 1.2);
+    }
+    // Schneeflocken-Muster
+    fctx.fillStyle = 'rgba(255,255,255,0.35)';
+    fctx.font = '16px sans-serif'; fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+    for (let y = 14; y < h; y += 34) for (let x = (y / 34 % 2) * 22 + 12; x < w; x += 44) fctx.fillText('❄', x, y);
+    // Beschriftung
+    fctx.fillStyle = 'rgba(80, 52, 6, 0.85)';
+    fctx.font = '800 22px Nunito, sans-serif';
+    fctx.fillText('✈  HIER RUBBELN  ✈', w / 2, h / 2 - 8);
+    fctx.font = '600 13px Nunito, sans-serif';
+    fctx.fillText('mit Finger oder Maus', w / 2, h / 2 + 18);
+  }
+
+  function pos(e) { const r = foil.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+  function scratchTo(p) {
+    fctx.globalCompositeOperation = 'destination-out';
+    fctx.lineWidth = 42; fctx.lineCap = 'round'; fctx.lineJoin = 'round';
+    fctx.beginPath();
+    fctx.moveTo(last ? last.x : p.x, last ? last.y : p.y); fctx.lineTo(p.x + 0.01, p.y);
+    fctx.stroke();
+    last = p;
+    if (++moves % 10 === 0) checkProgress();
+  }
+  function checkProgress() {
+    const data = fctx.getImageData(0, 0, foil.width, foil.height).data;
+    let clear = 0, total = 0;
+    for (let i = 3; i < data.length; i += 4 * 24) { total++; if (data[i] < 40) clear++; }
+    const ratio = clear / total;
+    if (ratio > 0.12) $('#revealAll').classList.remove('hidden');
+    if (ratio > 0.55) finish(true);
+  }
+
+  foil.addEventListener('pointerdown', e => {
+    if (done) return;
+    drawing = true; last = null; foil.setPointerCapture(e.pointerId); scratchTo(pos(e));
+  });
+  foil.addEventListener('pointermove', e => { if (drawing && !done) scratchTo(pos(e)); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => foil.addEventListener(t, () => { drawing = false; last = null; }));
+  $('#revealAll').addEventListener('click', () => finish(true));
+
+  function finish(celebrate) {
+    if (done) return;
+    done = true;
+    foil.classList.add('gone');
+    $('#revealAll').classList.add('hidden');
+    const win = !!state.res.w;
+    $('#dest').textContent = win ? 'WELT' : 'HEIM';
+    $('#seat').textContent = win ? '1A' : '24C';
+    $('#note').textContent = win
+      ? 'Herzlichen Glückwunsch! Mach am besten einen Screenshot von deinem Gutschein.'
+      : 'Schade! Vielleicht klappt es nächstes Mal. ✈';
+    if (!state.revealed) { state.revealed = true; save(state); }
+    if (celebrate && win) confetti();
+  }
+
+  /* ---------- Konfetti ---------- */
+  function confetti() {
+    if (reduceMotion) return;
+    const c = $('#confetti'), ctx = c.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = innerWidth * dpr; c.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const colors = ['#e8c46a', '#f8e7a8', '#ffffff', '#d8434d', '#3fae6a'];
+    const parts = Array.from({ length: 180 }, () => ({
+      x: innerWidth / 2, y: innerHeight * 0.45,
+      vx: (Math.random() - 0.5) * 14, vy: Math.random() * -14 - 4,
+      r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.3,
+      c: colors[Math.floor(Math.random() * colors.length)]
+    }));
+    const start = performance.now();
+    (function frame(t) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (const p of parts) {
+        p.vy += 0.32; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2);
+        ctx.restore();
+      }
+      if (t - start < 4500) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+    })(start);
+  }
+
+  /* ---------- Start ---------- */
+  const saved = load();
+  if (saved && saved.res) showTicket(saved, true);
+})();
+</script>
+</body>
+</html>
